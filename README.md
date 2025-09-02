@@ -98,10 +98,260 @@ go buil
 
 # API端点
 ## 认证
-## 文章（不需要鉴权访问）
-## 文章（需要鉴权访问）
-## 评论（需要鉴权认证）
-## 用户信息（需要认证）
+### 注册
+请求
+```
+curl --location 'localhost:8080/api/v1/auth/register?username=test1&email=test1%40email.com&password=123456' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "username": "test1",
+    "email": "test1@email.com",
+    "password": "123456"
+}'
+```
 
+成功响应结果
+```
+{
+    "message": "registered"
+}
+```
+
+### 登录
+请求
+```
+curl --location 'localhost:8080/api/v1/auth/login' \
+--header 'Content-Type: application/json' \
+--data '{
+    "username": "test1",
+    "password": "123456"
+}'
+```
+
+响应
+```
+{
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJ1c2VybmFtZSI6InRlc3QxIiwic3ViIjoiMSIsImV4cCI6MTc1Njg5NzQ1OSwiaWF0IjoxNzU2ODExMDU5fQ.kklHGbo_EJ4pGbsYrvyOccYdNsG2RdL0quTpiXOiHVE"
+}
+```
+## 文章（不需要鉴权访问）
+### 查询文章列表
+请求
+```
+curl --location 'localhost:8080/api/v1/posts'
+```
+
+响应
+```
+[
+    {
+        "ID": 1,
+        "CreatedAt": "0001-01-01T00:00:00Z",
+        "UpdatedAt": "0001-01-01T00:00:00Z",
+        "DeletedAt": null,
+        "title": "test",
+        "content": "testContent",
+        "user_id": 1,
+        "author": {
+            "ID": 1,
+            "CreatedAt": "2025-09-02T17:38:06.7042482+08:00",
+            "UpdatedAt": "2025-09-02T17:38:06.7042482+08:00",
+            "DeletedAt": null,
+            "username": "test1",
+            "email": "test1@email.com"
+        }
+    }
+]
+```
+
+### 根据文章id请求文章
+请求
+```
+curl --location 'localhost:8080/api/v1/posts/2'
+```
+响应
+```
+{
+    "ID": 2,
+    "CreatedAt": "2025-09-02T19:29:36.7973033+08:00",
+    "UpdatedAt": "2025-09-02T19:31:30.9758146+08:00",
+    "DeletedAt": null,
+    "title": "testPost2",
+    "content": "testContent2",
+    "user_id": 1,
+    "author": {
+        "ID": 1,
+        "CreatedAt": "2025-09-02T17:38:06.7042482+08:00",
+        "UpdatedAt": "2025-09-02T17:38:06.7042482+08:00",
+        "DeletedAt": null,
+        "username": "test1",
+        "email": "test1@email.com"
+    }
+}
+```
+## 文章（需要鉴权访问）
+### 查询我的文章
+请求
+```
+curl --location 'localhost:8080/api/v1/posts' \
+--header 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJ1c2VybmFtZSI6InRlc3QxIiwic3ViIjoiMSIsImV4cCI6MTc1Njg5NzQ1OSwiaWF0IjoxNzU2ODExMDU5fQ.kklHGbo_EJ4pGbsYrvyOccYdNsG2RdL0quTpiXOiHVE' \
+--header 'Content-Type: application/json' \
+--data '{
+    "title": "testPost",
+    "content": "testContent"
+}'
+```
+
+响应
+```
+{
+    "ID": 2,
+    "CreatedAt": "2025-09-02T19:29:36.7973033+08:00",
+    "UpdatedAt": "2025-09-02T19:29:36.7973033+08:00",
+    "DeletedAt": null,
+    "title": "testPost",
+    "content": "testContent",
+    "user_id": 1,
+    "author": {
+        "ID": 1,
+        "CreatedAt": "2025-09-02T17:38:06.7042482+08:00",
+        "UpdatedAt": "2025-09-02T17:38:06.7042482+08:00",
+        "DeletedAt": null,
+        "username": "test1",
+        "email": "test1@email.com"
+    }
+}
+```
+
+### 更新文章
+请求
+```
+curl --location --request PUT 'localhost:8080/api/v1/posts/2' \
+--header 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJ1c2VybmFtZSI6InRlc3QxIiwic3ViIjoiMSIsImV4cCI6MTc1Njg5NzQ1OSwiaWF0IjoxNzU2ODExMDU5fQ.kklHGbo_EJ4pGbsYrvyOccYdNsG2RdL0quTpiXOiHVE' \
+--header 'Content-Type: application/json' \
+--data '{
+    "title": "testPost2",
+    "content": "testContent2"
+}'
+```
+
+响应
+```
+{
+    "ID": 2,
+    "CreatedAt": "2025-09-02T19:29:36.7973033+08:00",
+    "UpdatedAt": "2025-09-02T19:31:30.9758146+08:00",
+    "DeletedAt": null,
+    "title": "testPost2",
+    "content": "testContent2",
+    "user_id": 1,
+    "author": {
+        "ID": 1,
+        "CreatedAt": "2025-09-02T17:38:06.7042482+08:00",
+        "UpdatedAt": "2025-09-02T17:38:06.7042482+08:00",
+        "DeletedAt": null,
+        "username": "test1",
+        "email": "test1@email.com"
+    }
+}
+```
+
+## 评论（需要鉴权认证）
+### 创建评论
+请求
+```
+curl --location 'localhost:8080/api/v1/posts/2/comments' \
+--header 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJ1c2VybmFtZSI6InRlc3QxIiwic3ViIjoiMSIsImV4cCI6MTc1Njg5NzQ1OSwiaWF0IjoxNzU2ODExMDU5fQ.kklHGbo_EJ4pGbsYrvyOccYdNsG2RdL0quTpiXOiHVE' \
+--header 'Content-Type: application/json' \
+--data '{
+    "content": "comment3"
+}'
+```
+
+响应
+```
+{
+    "ID": 2,
+    "CreatedAt": "2025-09-02T19:33:55.3129899+08:00",
+    "UpdatedAt": "2025-09-02T19:33:55.3129899+08:00",
+    "DeletedAt": null,
+    "content": "comment3",
+    "user_id": 1,
+    "author": {
+        "ID": 1,
+        "CreatedAt": "2025-09-02T17:38:06.7042482+08:00",
+        "UpdatedAt": "2025-09-02T17:38:06.7042482+08:00",
+        "DeletedAt": null,
+        "username": "test1",
+        "email": "test1@email.com"
+    },
+    "post_id": 2
+}
+```
+
+### 查询文章及评论
+请求
+```
+curl --location 'localhost:8080/api/v1/posts/2/comments'
+```
+
+响应
+```
+[
+    {
+        "ID": 1,
+        "CreatedAt": "2025-09-02T19:33:38.5395997+08:00",
+        "UpdatedAt": "2025-09-02T19:33:38.5395997+08:00",
+        "DeletedAt": null,
+        "content": "comment2",
+        "user_id": 1,
+        "author": {
+            "ID": 1,
+            "CreatedAt": "2025-09-02T17:38:06.7042482+08:00",
+            "UpdatedAt": "2025-09-02T17:38:06.7042482+08:00",
+            "DeletedAt": null,
+            "username": "test1",
+            "email": "test1@email.com"
+        },
+        "post_id": 2
+    },
+    {
+        "ID": 2,
+        "CreatedAt": "2025-09-02T19:33:55.3129899+08:00",
+        "UpdatedAt": "2025-09-02T19:33:55.3129899+08:00",
+        "DeletedAt": null,
+        "content": "comment3",
+        "user_id": 1,
+        "author": {
+            "ID": 1,
+            "CreatedAt": "2025-09-02T17:38:06.7042482+08:00",
+            "UpdatedAt": "2025-09-02T17:38:06.7042482+08:00",
+            "DeletedAt": null,
+            "username": "test1",
+            "email": "test1@email.com"
+        },
+        "post_id": 2
+    }
+]
+```
+
+## 用户信息（需要认证）
+请求
+```
+curl --location 'localhost:8080/api/v1/me' \
+--header 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJ1c2VybmFtZSI6InRlc3QxIiwic3ViIjoiMSIsImV4cCI6MTc1Njg5NzQ1OSwiaWF0IjoxNzU2ODExMDU5fQ.kklHGbo_EJ4pGbsYrvyOccYdNsG2RdL0quTpiXOiHVE'
+```
+
+响应
+```
+{
+    "ID": 1,
+    "CreatedAt": "2025-09-02T17:38:06.7042482+08:00",
+    "UpdatedAt": "2025-09-02T17:38:06.7042482+08:00",
+    "DeletedAt": null,
+    "username": "test1",
+    "email": "test1@email.com"
+}
+```
 
 
