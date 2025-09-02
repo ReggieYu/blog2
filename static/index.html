@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>博客应用 - 管理面板</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .status-card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 4px solid #28a745;
+        }
+
+        .status-card.error {
+            border-left-color: #dc3545;
+        }
+
+        .status-card.warning {
+            border-left-color: #ffc107;
+        }
+
+        .api-section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .api-section h3 {
+            color: #333;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #e9ecef;
+            padding-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e9ecef;
+            border-radius: 5px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #4facfe;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: transform 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+        }
+
+        .btn-success {
+            background: #28a745;
+        }
+
+        .result {
+            background: #e9ecef;
+            border-radius: 5px;
+            padding: 15px;
+            margin-top: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+
+        .posts-list {
+            display: grid;
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .post-card {
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .post-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .post-content {
+            color: #666;
+            margin-bottom: 15px;
+            line-height: 1.6;
+        }
+
+        .post-meta {
+            font-size: 0.9rem;
+            color: #999;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .comments-section {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .comment {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>博客应用demo</h1>
+            <p>基于Gin + GORM + SQLite 的博客测试系统</p>
+        </div>
+
+        <div class="content">
+            <!-- 应用状态 -->
+            <div class="status-card" id="statusCard">
+                <h3>📊 应用状态</h3>
+                <p id="statusText">正在检查应用状态...</p>
+            </div>
+
+            <div class="grid">
+                <!-- 用户认证 -->
+                <div class="api-section">
+                    <h3>🔐 用户认证</h3>
+
+                    <div class="form-group">
+                        <label>用户名:</label>
+                        <input type="text" id="username" placeholder="输入用户名" value="testuser">
+                    </div>
+
+                    <div class="form-group">
+                        <label>邮箱:</label>
+                        <input type="email" id="email" placeholder="输入邮箱" value="test@example.com">
+                    </div>
+
+                    <div class="form-group">
+                        <label>密码:</label>
+                        <input type="password" id="password" placeholder="输入密码" value="123456">
+                    </div>
+
+                    <button class="btn" onclick="register()">注册用户</button>
+                    <button class="btn btn-secondary" onclick="login()">用户登录</button>
+
+                    <div class="result" id="authResult"></div>
+                </div>
+
+                <!-- 文章管理 -->
+                <div class="api-section">
+                    <h3>📝 文章管理</h3>
+
+                    <div class="form-group">
+                        <label>文章标题:</label>
+                        <input type="text" id="postTitle" placeholder="输入文章标题" value="测试文章">
+                    </div>
+
+                    <div class="form-group">
+                        <label>文章内容:</label>
+                        <textarea id="postContent" rows="3" placeholder="输入文章内容">这是一篇测试文章的内容...</textarea>
+                    </div>
+
+                    <button class="btn btn-success" onclick="createPost()">创建文章</button>
+                    <button class="btn btn-secondary" onclick="getPosts()">获取文章列表</button>
+
+                    <div class="result" id="postResult"></div>
+                </div>
+            </div>
+
+            <!-- 文章列表 -->
+            <div class="api-section">
+                <h3>📚 文章列表</h3>
+                <button class="btn btn-secondary" onclick="refreshPosts()">刷新文章</button>
+                <div id="postsList" class="posts-list"></div>
+            </div>
+
+            <!-- 评论管理 -->
+            <div class="api-section">
+                <h3>💬 评论管理</h3>
+
+                <div class="form-group">
+                    <label>文章ID:</label>
+                    <input type="number" id="commentPostId" placeholder="输入文章ID" value="1">
+                </div>
+
+                <div class="form-group">
+                    <label>评论内容:</label>
+                    <textarea id="commentContent" rows="2" placeholder="输入评论内容">这是一条测试评论！</textarea>
+                </div>
+
+                <button class="btn btn-success" onclick="createComment()">创建评论</button>
+                <button class="btn btn-secondary" onclick="getComments()">获取评论</button>
+
+                <div class="result" id="commentResult"></div>
+            </div>
+
+            <!-- API测试 -->
+            <div class="api-section">
+                <h3>🧪 API测试</h3>
+                <button class="btn" onclick="testAllAPIs()">测试所有API</button>
+                <button class="btn btn-danger" onclick="clearResults()">清空结果</button>
+                <div class="result" id="testResult"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentToken = '';
+        const API_BASE = 'http://localhost:8080/api/v1';
+
+        // 页面加载时检查状态
+        window.onload = function () {
+            checkStatus();
+        };
+
+        // 检查应用状态
+        async function checkStatus() {
+            try {
+                const response = await fetch(`${API_BASE}/posts`);
+                if (response.ok) {
+                    document.getElementById('statusCard').className = 'status-card';
+                    document.getElementById('statusText').innerHTML = '✅ 应用运行正常<br>🌐 API地址: http://localhost:8080<br>🗄️ 数据库: SQLite (blog.db)';
+                } else {
+                    throw new Error('API响应异常');
+                }
+            } catch (error) {
+                document.getElementById('statusCard').className = 'status-card error';
+                document.getElementById('statusText').innerHTML = '❌ 应用连接失败<br>请确保后端服务已启动<br>错误: ' + error.message;
+            }
+        }
+
+        // 用户注册
+        async function register() {
+            const username = document.getElementById('username').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            try {
+                const response = await fetch(`${API_BASE}/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, email, password })
+                });
+
+                const result = await response.json();
+                document.getElementById('authResult').textContent = JSON.stringify(result, null, 2);
+
+                if (response.ok) {
+                    showMessage('✅ 用户注册成功！');
+                }
+            } catch (error) {
+                document.getElementById('authResult').textContent = '错误: ' + error.message;
+            }
+        }
+
+        // 用户登录
+        async function login() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            try {
+                const response = await fetch(`${API_BASE}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const result = await response.json();
+                document.getElementById('authResult').textContent = JSON.stringify(result, null, 2);
+
+                if (response.ok && result.token) {
+                    currentToken = result.token;
+                    showMessage('✅ 登录成功！Token已保存');
+                }
+            } catch (error) {
+                document.getElementById('authResult').textContent = '错误: ' + error.message;
+            }
+        }
+
+        // 创建文章
+        async function createPost() {
+            if (!currentToken) {
+                showMessage('❌ 请先登录获取Token');
+                return;
+            }
+
+            const title = document.getElementById('postTitle').value;
+            const content = document.getElementById('postContent').value;
+
+            try {
+                const response = await fetch(`${API_BASE}/posts`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${currentToken}`
+                    },
+                    body: JSON.stringify({ title, content })
+                });
+
+                const result = await response.json();
+                document.getElementById('postResult').textContent = JSON.stringify(result, null, 2);
+
+                if (response.ok) {
+                    showMessage('✅ 文章创建成功！');
+                    refreshPosts();
+                }
+            } catch (error) {
+                document.getElementById('postResult').textContent = '错误: ' + error.message;
+            }
+        }
+
+        // 获取文章列表
+        async function getPosts() {
+            try {
+                const response = await fetch(`${API_BASE}/posts`);
+                const result = await response.json();
+                document.getElementById('postResult').textContent = JSON.stringify(result, null, 2);
+                displayPosts(result);
+            } catch (error) {
+                document.getElementById('postResult').textContent = '错误: ' + error.message;
+            }
+        }
+
+        // 刷新文章列表
+        async function refreshPosts() {
+            try {
+                const response = await fetch(`${API_BASE}/posts`);
+                const result = await response.json();
+                displayPosts(result);
+            } catch (error) {
+                console.error('刷新文章失败:', error);
+            }
+        }
+
+        // 显示文章列表
+        function displayPosts(posts) {
+            const postsList = document.getElementById('postsList');
+            if (!posts || posts.length === 0) {
+                postsList.innerHTML = '<p>暂无文章</p>';
+                return;
+            }
+
+            postsList.innerHTML = posts.map(post => `
+                <div class="post-card">
+                    <div class="post-title">${post.title}</div>
+                    <div class="post-content">${post.content}</div>
+                    <div class="post-meta">
+                        <span>作者: ${post.author?.username || '未知'}</span>
+                        <span>创建时间: ${new Date(post.CreatedAt).toLocaleString()}</span>
+                    </div>
+                    <div class="comments-section">
+                        <button class="btn btn-secondary" onclick="getPostComments(${post.ID})">查看评论</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // 创建评论
+        async function createComment() {
+            if (!currentToken) {
+                showMessage('❌ 请先登录获取Token');
+                return;
+            }
+
+            const postId = document.getElementById('commentPostId').value;
+            const content = document.getElementById('commentContent').value;
+
+            try {
+                const response = await fetch(`${API_BASE}/posts/${postId}/comments`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${currentToken}`
+                    },
+                    body: JSON.stringify({ content })
+                });
+
+                const result = await response.json();
+                document.getElementById('commentResult').textContent = JSON.stringify(result, null, 2);
+
+                if (response.ok) {
+                    showMessage('✅ 评论创建成功！');
+                }
+            } catch (error) {
+                document.getElementById('commentResult').textContent = '错误: ' + error.message;
+            }
+        }
+
+        // 获取评论
+        async function getComments() {
+            const postId = document.getElementById('commentPostId').value;
+
+            try {
+                const response = await fetch(`${API_BASE}/posts/${postId}/comments`);
+                const result = await response.json();
+                document.getElementById('commentResult').textContent = JSON.stringify(result, null, 2);
+            } catch (error) {
+                document.getElementById('commentResult').textContent = '错误: ' + error.message;
+            }
+        }
+
+        // 获取指定文章的评论
+        async function getPostComments(postId) {
+            try {
+                const response = await fetch(`${API_BASE}/posts/${postId}/comments`);
+                const result = await response.json();
+                alert(`文章 ${postId} 的评论:\n${JSON.stringify(result, null, 2)}`);
+            } catch (error) {
+                alert('获取评论失败: ' + error.message);
+            }
+        }
+
+        // 测试所有API
+        async function testAllAPIs() {
+            const testResult = document.getElementById('testResult');
+            testResult.textContent = '🧪 开始测试所有API...\n\n';
+
+            try {
+                // 测试1: 获取文章列表
+                testResult.textContent += '1. 测试获取文章列表...\n';
+                const postsResponse = await fetch(`${API_BASE}/posts`);
+                testResult.textContent += `   状态: ${postsResponse.status} ${postsResponse.ok ? '✅' : '❌'}\n`;
+
+                // 测试2: 用户注册
+                testResult.textContent += '2. 测试用户注册...\n';
+                const registerResponse = await fetch(`${API_BASE}/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        username: 'testuser2',
+                        email: 'test2@example.com',
+                        password: '123456'
+                    })
+                });
+                testResult.textContent += `   状态: ${registerResponse.status} ${registerResponse.ok ? '✅' : '❌'}\n`;
+
+                // 测试3: 用户登录
+                testResult.textContent += '3. 测试用户登录...\n';
+                const loginResponse = await fetch(`${API_BASE}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: 'testuser2', password: '123456' })
+                });
+                testResult.textContent += `   状态: ${loginResponse.status} ${loginResponse.ok ? '✅' : '❌'}\n`;
+
+                if (loginResponse.ok) {
+                    const loginResult = await loginResponse.json();
+                    currentToken = loginResult.token;
+                    testResult.textContent += `   Token获取: ✅\n`;
+
+                    // 测试4: 创建文章
+                    testResult.textContent += '4. 测试创建文章...\n';
+                    const postResponse = await fetch(`${API_BASE}/posts`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${currentToken}`
+                        },
+                        body: JSON.stringify({
+                            title: 'API测试文章',
+                            content: '这是通过API测试创建的文章'
+                        })
+                    });
+                    testResult.textContent += `   状态: ${postResponse.status} ${postResponse.ok ? '✅' : '❌'}\n`;
+                }
+
+                testResult.textContent += '\n🎉 API测试完成！';
+
+            } catch (error) {
+                testResult.textContent += `\n❌ 测试过程中出现错误: ${error.message}`;
+            }
+        }
+
+        // 清空结果
+        function clearResults() {
+            document.getElementById('authResult').textContent = '';
+            document.getElementById('postResult').textContent = '';
+            document.getElementById('commentResult').textContent = '';
+            document.getElementById('testResult').textContent = '';
+        }
+
+        // 显示消息
+        function showMessage(message) {
+            console.log(message);
+            // 可以添加一个toast通知
+        }
+    </script>
+</body>
+
+</html>
